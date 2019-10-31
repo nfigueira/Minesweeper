@@ -1,88 +1,98 @@
 public class Game {
 
-    final static private int VALUE = 0;
-    final static private int VISIBILITY = 1;
-    final static private int COVERED = 0;
-    final static private int UNCOVERED = 1;
-    final static private int FLAGGED = 2;
-
-    // each spot in the board has 2 numbers:
-    // the first one is for its value
-    // the second is for its visibility: 0 = covered, 1 = uncovered, 2 = flagged
-    // if the number is greater than 9, it's a bomb
-    private int[][][] board;
+    private Cell[][] board;
     // number of bombs left (flagging one counts as "finding" a bomb)
     private int numBombs;
+    // total number of mines
+    private int totalBombs;
     // number of squares needed to uncover (starts with board size - mines)
     private int squaresLeft;
 
+    private int width;
+    private int height;
+
     public Game(int width, int height, int mines) {
-        board = new int[height][width][2];
+        board = new Cell[height][width];
+        this.width = width;
+        this.height = height;
         numBombs = mines;
+        totalBombs = mines;
         squaresLeft = width * height - numBombs;
         initializeBoard(width, height, mines);
     }
 
     private void initializeBoard(int width, int height, int mines) {
         int numSquaresLeft = width * height;
-        for (int row = 0; mines > 0; row++) {
-            for (int col = 0; col < width && mines > 0; col++) {
+        for (int row = 0; row < height; row++) {
+            for (int col = 0; col < width; col++) {
+                // if it doesn't already exist, create a new cell
+                if (board[row][col] == null) {
+                    board[row][col] = new Cell();
+                }
                 // make (row, col) a bomb with probability numBombsLeft / numSquaresLeft
                 if (numSquaresLeft * Math.random() < mines) {
-                    board[row - 1][col - 1][VALUE] = 10;
+                    board[row][col].addValue(10);
                     mines--;
-                    updateSurroundings(row, col);
+                    updateMineSurroundings(row, col);
                 }
                 numSquaresLeft--;
             }
         }
-
     }
 
     // adds one to all adjacent squares (called after assigning the square to be a mine)
-    // it doesn't matter if you add to a mine because >10 means it's a mine
-    private void updateSurroundings(int row, int col) {
+    // it doesn't matter if you add to a mine because >9 means it's a mine
+    private void updateMineSurroundings(int row, int col) {
         // checks for edge cases using min and max
-        for (int r = Math.max(row - 1, 0); r < Math.min(row + 1, board.length); r++) {
-            for (int c = Math.max(col - 1, 0); c < Math.min(col + 1, board[0].length); c++) {
-                board[r][c][VALUE] += 1;
+        for (int r = Math.max(row - 1, 0); r < Math.min(row + 2, board.length); r++) {
+            for (int c = Math.max(col - 1, 0); c < Math.min(col + 2, board[0].length); c++) {
+                // if it doesn't already exist, then create a new cell
+                if (board[r][c] == null) {
+                    board[r][c] = new Cell();
+                }
+                board[r][c].addValue(1);
             }
         }
     }
 
     // Clicks on the square with coordinates given
-    // Returns 0 if the game continues, 1 if the player wins, and 2 if the player loses
-    public int click(int row, int col) {
-        // if there are no bombs around, uncover all surrounding squares
-        expand(row, col);
-        if (board[row][col][VALUE] > 9) { // if it's a bomb
-            return 2;
-        }
+    // Returns false if the game continues, true otherwise
+    public boolean click(int row, int col) {
         // if it's flagged, now it's uncovered so you have an extra supposed mine left
-        if (board[row][col][VISIBILITY] == FLAGGED) {
+        if (board[row][col].isFlagged()) {
             numBombs++;
         }
-        squaresLeft -= 1;
+        // if there are no bombs around, uncover all surrounding squares
+        expand(row, col);
+        // it's already uncovered, so don't need to worry about that
+        if (board[row][col].getValue() > 9) { // if it's a bomb
+            return true;
+        }
         return checkWin();
     }
 
     // If you don't have to click any more squares, you win!
-    private int checkWin() {
+    public boolean checkWin() {
         if (squaresLeft == 0) {
-            return 1;
+            return true;
         }
-        return 0;
+        return false;
     }
 
     // Expands around the clicked square until there aren't any 0 squares
-    private void expand(int row, int col) {
+    public void expand(int row, int col) {
+        Cell cell = board[row][col];
         // If it's already uncovered, you don't need to expand anymore
-        if (board[row][col][VISIBILITY] != UNCOVERED && board[row][col][VALUE] == 0) {
-            board[row][col][VISIBILITY] = UNCOVERED;
-            // checks for edge cases using min and max
-            for (int r = Math.max(row - 1, 0); r < Math.min(row + 1, board.length); r++) {
-                for (int c = Math.max(col - 1, 0); c < Math.min(col + 1, board[0].length); c++) {
-                    expand(r, c);
+        if (!cell.isUncovered()) {
+            squaresLeft -= 1;
+            cell.click();
+            // If its value is 0, expand!
+            if (cell.getValue() == 0) {
+                // checks for edge cases using min and max
+                for (int r = Math.max(row - 1, 0); r < Math.min(row + 2, board.length); r++) {
+                    for (int c = Math.max(col - 1, 0); c < Math.min(col + 2, board[0].length); c++) {
+                        expand(r, c);
+                    }
                 }
             }
         }
@@ -91,30 +101,46 @@ public class Game {
     // Flags or unflags the square with coordinates given
     // If it's uncovered, do nothing
     public void flag(int row, int col) {
-        if (board[row][col][VISIBILITY] == FLAGGED) {
+        if (board[row][col].isFlagged()) {
             numBombs++;
-            board[row][col][VISIBILITY] = COVERED;
-        } else if (board[row][col][VISIBILITY] == COVERED){
+        } else {
             numBombs--;
-            board[row][col][VISIBILITY] = FLAGGED;
         }
+        board[row][col].flag();
     }
 
     // returns value if uncovered
-    // returns -1 if covered
-    // returns -2 if flagged
+    // returns -1 otherwise
     public int getSquare(int row, int col) {
-        int visibility = board[row][col][VISIBILITY];
-        if (visibility == COVERED) {
-            return -1;
-        } else if (visibility == UNCOVERED) {
-            return board[row][col][VALUE];
-        } else {
-            return -2;
-        }
+        return board[row][col].getValue();
+    }
+
+    // checks whether a specific cell is uncovered
+    public boolean isUncovered(int row, int col){
+        return board[row][col].isUncovered();
+    }
+
+    // checks whether a specific cell is flagged
+    public boolean isFlagged(int row, int col) {
+        return board[row][col].isFlagged();
     }
 
     public int getNumBombs() {
         return numBombs;
+    }
+
+    public int getWidth() {
+        return width;
+    }
+
+    public int getHeight() {
+        return height;
+    }
+
+    public void reset() {
+        numBombs = totalBombs;
+        squaresLeft = width * height - numBombs;
+        board = new Cell[height][width];
+        initializeBoard(width, height, totalBombs);
     }
 }

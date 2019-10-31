@@ -25,28 +25,9 @@ public class Minesweeper {
             numMines = 0;
         }
 
-        updatePrintBoard(0, size, size);
-    }
-
-
-
-    // reprint the board starting from startRow
-    private static void updatePrintBoard(int startRow, int rows, int columns) {
-        if (startRow == 0) {
-            printHorizontalLine(columns);
-        }
-        System.out.println("|")
-        for (int r = startRow; r < rows; r++) {
-            for (int c = 0; c < columns; c++) {
-                printSquare(r, c);
-            }
-            printHorizontalLine(columns);
-        }
-    }
-
-    // prints one square plus its right border
-    private static void printHorizontalLine(int columns) {
-        System.out.print("-");
+        // Play the game!
+        // Constructing the UserGame does everything
+        new UserGame(size, size, numMines);
     }
 
     // keeps asking until the belligerent user puts in an integer
