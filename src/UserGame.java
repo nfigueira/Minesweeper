@@ -97,6 +97,13 @@ public class UserGame extends Game implements ActionListener {
         cells[row][col].setEnabled(false);
     }
 
+    // make the cell an F if flagged (only for Solver)
+    @Override
+    public void flag(int row, int col) {
+        super.flag(row, col);
+        cells[row][col].setText("F");
+    }
+
     @Override
     public void reset() {
         super.reset();
