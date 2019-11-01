@@ -18,25 +18,40 @@ public class Game {
         numBombs = mines;
         totalBombs = mines;
         squaresLeft = width * height - numBombs;
-        initializeBoard(width, height, mines);
+        createBoard(width, height);
     }
 
-    private void initializeBoard(int width, int height, int mines) {
-        int numSquaresLeft = width * height;
+    private void createBoard(int width, int height) {
         for (int row = 0; row < height; row++) {
             for (int col = 0; col < width; col++) {
-                // if it doesn't already exist, create a new cell
-                if (board[row][col] == null) {
-                    board[row][col] = new Cell();
-                }
-                // make (row, col) a bomb with probability numBombsLeft / numSquaresLeft
-                if (numSquaresLeft * Math.random() < mines) {
+                //create new cells
+                board[row][col] = new Cell();
+            }
+        }
+    }
+
+    // initialize a game without a mine at r, c
+    private void initializeBoard(int width, int height, int mines, int r, int c) {
+        int numSquaresLeft = width * height;
+
+        // if we've passed the cell, then we need to subtract 1
+        int beforeFirstClick = 1;
+        for (int row = 0; row < height; row++) {
+            for (int col = 0; col < width; col++) {
+                // make (row, col) a bomb with probability numBombsLeft / numSquaresLeft, unless it's the first click
+                if (row == r && col == c) {
+                    beforeFirstClick = 0;
+                } else if ((numSquaresLeft - beforeFirstClick) * Math.random() < mines) {
                     board[row][col].addValue(10);
                     mines--;
                     updateMineSurroundings(row, col);
                 }
                 numSquaresLeft--;
             }
+        }
+        // if the cell hasn't been initialized, do so now
+        if (board[r][c] == null) {
+            board[r][c] = new Cell();
         }
     }
 
@@ -46,10 +61,6 @@ public class Game {
         // checks for edge cases using min and max
         for (int r = Math.max(row - 1, 0); r < Math.min(row + 2, board.length); r++) {
             for (int c = Math.max(col - 1, 0); c < Math.min(col + 2, board[0].length); c++) {
-                // if it doesn't already exist, then create a new cell
-                if (board[r][c] == null) {
-                    board[r][c] = new Cell();
-                }
                 board[r][c].addValue(1);
             }
         }
@@ -58,6 +69,10 @@ public class Game {
     // Clicks on the square with coordinates given
     // Returns false if the game continues, true otherwise
     public boolean click(int row, int col) {
+        // initialize if it's the first click (so the first square isn't a mine)
+        if (squaresLeft == width * height - totalBombs) {
+            initializeBoard(width, height, totalBombs, row, col);
+        }
         // if it's flagged, now it's uncovered so you have an extra supposed mine left
         if (board[row][col].isFlagged()) {
             numBombs++;
@@ -141,6 +156,6 @@ public class Game {
         numBombs = totalBombs;
         squaresLeft = width * height - numBombs;
         board = new Cell[height][width];
-        initializeBoard(width, height, totalBombs);
+        createBoard(width, height);
     }
 }
