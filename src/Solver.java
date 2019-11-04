@@ -15,7 +15,7 @@ public class Solver {
         long startTime = System.currentTimeMillis();
 
         // if the user passes in "view" as an argument, make the game visible
-        if (args.length > 0 && args[0].equals("view")) {
+        if (args.length > 1 && args[1].equals("view")) {
             game = new UserGame(SIZE, SIZE, MINES);
             trials = 1;
         } else {

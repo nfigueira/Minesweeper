@@ -15,30 +15,9 @@ public class TestGame implements ActionListener {
     }
 
     public TestGame() {
-        GridLayout grid = new GridLayout(2,2);
-        JFrame minesweeper = new JFrame("Minesweeper");
-        minesweeper.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        minesweeper.setLayout(grid);
-        hello = new JButton("hello");
-        hi = new JButton("hi");
-        greetings = new JButton("greetings");
-        salutations = new JButton("salutations");
-        hello.setActionCommand("1");
-        hi.setActionCommand("2");
-        greetings.setActionCommand("3");
-        salutations.setActionCommand("4");
-        hello.addActionListener(this);
-        minesweeper.add(hello);
-        minesweeper.add(hi);
-        minesweeper.add(greetings);
-        minesweeper.add(salutations);
+        Solver.main(new String[0]);
 
 
-
-
-
-        minesweeper.pack();
-        minesweeper.setVisible(true);
     }
 
     public void actionPerformed(ActionEvent e) {
