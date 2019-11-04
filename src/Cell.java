@@ -1,6 +1,9 @@
+// one cell of a minesweeper board
 public class Cell {
 
+    // the value of the cell
     private int value;
+
     private boolean flagged;
     private boolean uncovered;
 

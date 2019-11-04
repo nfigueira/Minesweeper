@@ -1,5 +1,6 @@
 import java.util.Scanner;
 
+// runs a minesweeper game for the user to play
 public class Minesweeper {
 
     private static Scanner kb = new Scanner(System.in);
@@ -13,6 +14,7 @@ public class Minesweeper {
             System.out.println("Wow! You managed to create a board without any squares to click! I guess that means you win?");
             return;
         }
+
         System.out.println("How many mines?");
         // if they don't put an integer, keep asking
         int numMines = askForAnInteger();
@@ -20,9 +22,8 @@ public class Minesweeper {
         if (numMines >= size * size) {
             System.out.println("Wow! All the squares are mines already! I guess that means you win?");
             return;
-        } else if (numMines < 0) { // Negative mines is 0, so just make it 0
-            System.out.println("That's not very many mines :/");
-            numMines = 0;
+        } else if (numMines <= 0) { // if there aren't any mines, you've already won
+            System.out.println("Wow! There aren't any mines! I guess that means you win?");
         }
 
         // Play the game!
