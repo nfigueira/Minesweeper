@@ -11,4 +11,4 @@ java -jar Minesweeper.jar solve
 
 To watch the solver attempt to solve a game, run
 
-java-jar Minesweeper.jar solve view
+java -jar Minesweeper.jar solve view
